@@ -1,8 +1,22 @@
 ﻿import numpy as np
 from PIL import Image
 
-import numpy as np
+image_path = "./data/testing purposes/Face.png"
 class ImagePreprocessor:
+    def fit(self,path):
+        self.load(path)
+        self.cluster(k=4)
+        self.convolve()
+        self.threshold()
+    def get(self,type):
+        if type=="image":
+            return self.image_array
+        elif type == "conv":
+            return self.convolved_image
+        elif type == "clust":
+            return self.clustered_image
+        elif type == "bin":
+            return self.binary_image
     def load(self, path):
         from PIL import Image
         image = Image.open(path).convert("L")
@@ -30,6 +44,7 @@ class ImagePreprocessor:
 
     def threshold(self, threshold=0.5):
         self.binary_image = np.where(self.convolved_image > threshold, 0, 255).astype(np.uint8)
+        self.binary_image = self.binary_image[1:self.binary_image.shape[0]-1,1:self.binary_image.shape[1]-1]
         return self.binary_image
 
     def plot_all(self, path):
@@ -59,52 +74,44 @@ class ImagePreprocessor:
 
 class Converter:
     def fit(self,picture):
-        black_indices = np.argwhere(picture == 0)
-        sampled_points = black_indices
-        mu =black_indices.mean()
-        distances = np.linalg.norm((sampled_points - mu), axis=1)
-        sampled_points = sampled_points[np.argsort(distances)]
-        sampled_points = sampled_points[2000:]
-        random_indices = np.random.choice(np.arange(sampled_points.shape[0]), size=1000, replace=False)
-        sampled_points = sampled_points[random_indices]
-        return sampled_points
-        T = np.linspace(0,500)
-        T = T/500
+        self.black_indices = np.argwhere(picture == 0)
+    def get(self,type):
+        return self.black_indices
+
+def getBorder(black_points):
+    y_coordinates = black_points[:, 1]
+
+    unique_y = np.unique(y_coordinates)
+
+    min_x_points = []
+
+    for y in unique_y:
+        filtered_points = black_points[black_points[:,1] == y]
+        min_x_index = np.argmin(filtered_points[:, 0])
+        min_x_point = filtered_points[min_x_index]
+        min_x_points.append(min_x_point)
+    min_x_points = np.array(min_x_points)
+    return min_x_points
 
 
-
-
-# Create an instance of the ImagePreprocessor class
 processor = ImagePreprocessor()
-
-# Path to the image file
-image_path = "./data/testing purposes/Face.png"
-
-# Load the image and preprocess it
-image_array = processor.load(image_path)
-clustered_image = processor.cluster(k=4)
-convolved_image = processor.convolve()
-binary_image = processor.threshold()
-binary_image = binary_image[1:binary_image.shape[0]-1,1:binary_image.shape[1]-1]
-# Create an instance of the Converter class
+processor.fit(image_path)
+binary_image = processor.get("bin")
 converter = Converter()
+converter.fit(binary_image)
+sampled_points = converter.get("black")
 
-# Get the sampled points using Converter
-sampled_points = converter.fit(binary_image)
 
-# Animate the appearance of the sampled points
+sampled_points = getBorder(sampled_points)
+
+
+
+
+
+
+
+
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-
-fig, ax = plt.subplots()
-ax.imshow(binary_image, cmap="gray")
-points, = ax.plot([], [], 'ro', markersize=3)
-
-def update(frame):
-    if frame < len(sampled_points):
-        points.set_data(sampled_points[:frame+1, 1], sampled_points[:frame+1, 0])
-    return points,
-
-ani = FuncAnimation(fig, update, frames=len(sampled_points)+1, interval=50, blit=True)
-
+plt.imshow(binary_image, cmap="gray")
+plt.plot(sampled_points[:, 1], sampled_points[:, 0], '-r')
 plt.show()

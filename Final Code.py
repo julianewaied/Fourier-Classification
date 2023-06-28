@@ -68,5 +68,5 @@ class Converter:
         T = np.linspace(0,500)
         T = T/500
 processor = ImagePreprocessor()
-processor.plot_all("C:/Users/WIN10PRO/Desktop/My Stuff/University/Others/ML and FT/Fourier-Classification/data/testing purposes/me.png")
+processor.plot_all("C:/Users/WIN10PRO/Desktop/My Stuff/University/Others/ML and FT/Fourier-Classification/data/testing purposes/Face.png")
 
