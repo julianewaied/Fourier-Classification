@@ -55,10 +55,11 @@ class ImagePreprocessor:
         plt.show()
 
 class Converter:
-    def fit(picture):
+    def fit(self,picture):
         black_indices = np.argwhere(picture == 0)
         np.random.shuffle(black_indices)
         sampled_points = black_indices
+        sampled_points = sampled_points[:500]
         mu =black_indices.mean()
         distances = np.sum(np.abs(sampled_points - mu), axis=1)
         sampled_points = sampled_points[np.argsort(distances)]
@@ -66,4 +67,6 @@ class Converter:
         return sampled_points
         T = np.linspace(0,500)
         T = T/500
+processor = ImagePreprocessor()
+processor.plot_all("C:/Users/WIN10PRO/Desktop/My Stuff/University/Others/ML and FT/Fourier-Classification/data/testing purposes/me.png")
 
